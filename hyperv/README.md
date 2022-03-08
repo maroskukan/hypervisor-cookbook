@@ -55,3 +55,29 @@ The communication from `Default Network` to outside is enabled using default NAT
 ```powershell
 Get-NetIPInterface | where {$_.InterfaceAlias -eq 'vEthernet (WSL)' -or $_.InterfaceAlias -eq 'vEthernet (Default Switch)'} | Set-NetIPInterface -Forwarding Enabled
 ```
+
+### VM Network Adapters
+
+```powershell
+# Retrieve VM IP Address
+Get-VM -Name kvm01 `
+| select -ExpandProperty networkadapters `
+| select vmname, ipaddresses
+
+VMName IPAddresses
+------ -----------
+kvm01  {172.25.139.59, fe80::215:5dff:fe73:d133}
+```
+
+## VM State
+
+```powershell
+# List all Registered VMs
+Get-VM
+
+# Start VM
+Start-VM kvm01
+
+# Stop VM
+Stop-VM kvm01
+```
