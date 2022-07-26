@@ -2,7 +2,17 @@
 
 ## Installation
 
+### Prerequisites
+
+```bash
+grep -Eoc '(vmx|svm)' /proc/cpuinfo
+
+sudo apt install cpu-checker
+kvm-ok
+```
 ### Packages
+
+#### Yum
 
 ```bash
 sudo yum install -y qemu-kvm libvirt virt-manager libvirt-client
@@ -21,9 +31,17 @@ If you use Cockpit Web UI, you can install `cockpit-machines` to manage Virtual 
 sudo yum install -y cockpit-machines
 ```
 
+#### Apt
+
+```bash
+sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
+sudo apt install virt-manager virtinst
+```
+
 ### Services
 
 ```bash
+sudo systemctl is-active libvirtd
 sudo systemctl start libvirtd
 sudo systemctl enable libvirtd
 sudo reboot
@@ -31,6 +49,16 @@ sudo reboot
 
 ### Permissions
 
+```bash
+sudo usedmod -aG libvirt $USER
+sudo usermod -aG kvm $USER
+```
+
+### Networking
+
+```bash
+brctl show
+```
 
 ## Domain Operation
 

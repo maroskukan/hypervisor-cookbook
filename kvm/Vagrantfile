@@ -1,0 +1,40 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+
+    # Hyper-V Provider Specific Configuration
+    config.vm.provider "hyperv" do |h|
+      h.enable_virtualization_extensions = true
+      h.linked_clone = true
+      h.memory = 2048
+      h.maxmemory = 2048
+    end
+
+    # Virtualbox Provider Specific Configuration
+    config.vm.provider "virtualbox" do |v|
+      v.memory = 2048
+      v.cpus = 2
+      v.customize ["modifyvm", :id, "--nested-hw-virt", "on"]
+    end
+
+    config.vm.define "kvm" do |kvm|
+      # VM Shared Configuration
+      kvm.vm.box = "maroskukan/ubuntu2204"
+      kvm.vm.hostname = "ubuntu2204"
+
+      # Hyper-V VM Specific Configuration
+      kvm.vm.provider 'hyperv' do |h, override|
+        override.vm.network "public_network", bridge: "Default Switch"
+        override.vm.synced_folder '.', '/vagrant', disabled: true
+      end
+
+      # Virtualbox VM Specific Configuration
+      kvm.vm.provider 'virtualbox' do |v, override|
+        override.vm.synced_folder ".", "/vagrant", disabled: true
+      end
+    end
+
+    # VM Shared Provisioning
+    config.vm.provision "shell", inline: "cat /etc/os-release"
+  end
