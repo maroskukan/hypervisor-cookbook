@@ -34,8 +34,11 @@ sudo yum install -y cockpit-machines
 #### Apt
 
 ```bash
-sudo apt install qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils
+sudo apt install qemu-kvm qemu-efi libvirt-daemon-system libvirt-clients bridge-utils
 sudo apt install virt-manager virtinst
+
+# For vagrant-libvirt plugin
+sudo apt install qemu libvirt-dev ruby-libvirt libxslt-dev libxml2-dev zlib1g-dev ruby-dev  ebtables dnsmasq-base
 ```
 
 ### Services
@@ -62,8 +65,56 @@ brctl show
 
 ## Domain Operation
 
-
 ### Creation
+
+Install from ISO with VM that supports BIOS:
+
+```bash
+virt-install \
+    --name=arch_bios \
+    --description "Arch x64 bios VM" \
+    --os-type=Linux \
+    --os-variant=archlinux \
+    --ram=2048 \
+    --vcpus=2 \
+    --disk path=/var/lib/libvirt/images/arch_bios.qcow2,bus=virtio,size=20 \
+    --graphics vnc,port=5999 \
+    --console pty,target_type=serial \
+    --cdrom /home/$USER/Downloads/iso/archlinux-2022.09.03-x86_64.iso \
+    --network bridge:virbr0
+```
+
+Install from ISO with VM that supports EFI:
+
+```bash
+virt-install \
+    -n arch_efi \
+    --description "Arch x64 efi VM" \
+    --os-type=Linux \
+    --os-variant=archlinux \
+    --boot loader=/usr/share/OVMF/OVMF_CODE.fd \
+    --ram=2048 \
+    --vcpus=2 \
+    --disk path=/var/lib/libvirt/images/arch_efi.img,bus=virtio,size=20 \
+    --graphics vnc,port=5998 \
+    --console pty,target_type=serial \
+    --cdrom /home/$USER/Downloads/iso/archlinux-2022.09.03-x86_64.iso \
+    --network bridge:virbr0
+```
+
+> **Info**: The list of supported OS variants can be retrieved by using `osinfo-query os` command, which is available through `libosinfo-bin` package.
+
+
+### Interaction
+
+```bash
+# Retrieve the VNC port
+# :0 corresponds to 5900
+virsh vncdisplay arch_efi
+
+
+```
+
 
 ### Deletion
 
