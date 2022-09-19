@@ -88,14 +88,14 @@ Install from ISO with VM that supports EFI:
 
 ```bash
 virt-install \
-    -n arch_efi \
+    --name arch_efi \
     --description "Arch x64 efi VM" \
     --os-type=Linux \
     --os-variant=archlinux \
     --boot loader=/usr/share/OVMF/OVMF_CODE.fd \
     --ram=2048 \
     --vcpus=2 \
-    --disk path=/var/lib/libvirt/images/arch_efi.img,bus=virtio,size=20 \
+    --disk path=/var/lib/libvirt/images/arch_efi.qcow2,bus=virtio,size=20 \
     --graphics vnc,port=5998 \
     --console pty,target_type=serial \
     --cdrom /home/$USER/Downloads/iso/archlinux-2022.09.03-x86_64.iso \
@@ -107,12 +107,23 @@ virt-install \
 
 ### Interaction
 
+
+Retrieve the VNC port. :0 corresponds to 5900
+
 ```bash
-# Retrieve the VNC port
-# :0 corresponds to 5900
 virsh vncdisplay arch_efi
+```
 
+Rerieve domain MAC and IP address.
 
+```bash
+DOMAIN_NAME=archlinux
+
+DOMAIN_MAC=$(virsh dumpxml --domain "$DOMAIN_NAME" | grep 'mac address' | cut -f2 -d"'")
+
+DOMAIN_IP=$(virsh net-dhcp-leases default | grep "$DOMAIN_IP" | awk '{ print $5}' | cut -f1 -d"/")
+
+echo $DOMAIN_IP
 ```
 
 
