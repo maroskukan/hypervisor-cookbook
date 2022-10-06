@@ -45,8 +45,7 @@ sudo apt install qemu libvirt-dev ruby-libvirt libxslt-dev libxml2-dev zlib1g-de
 
 ```bash
 sudo systemctl is-active libvirtd
-sudo systemctl start libvirtd
-sudo systemctl enable libvirtd
+sudo systemctl enable --now libvirtd
 sudo reboot
 ```
 
