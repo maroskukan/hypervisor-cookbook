@@ -1,5 +1,79 @@
 # Hyper-V
 
+- [Hyper-V](#hyper-v)
+  - [VM Operation](#vm-operation)
+    - [Creation](#creation)
+    - [Properties](#properties)
+    - [State](#state)
+    - [Removal](#removal)
+  - [Linux Guest](#linux-guest)
+    - [Virtual Hardware Settings](#virtual-hardware-settings)
+    - [Virtualization Extensions](#virtualization-extensions)
+    - [Integration Services](#integration-services)
+    - [Screen Resolution](#screen-resolution)
+  - [Networking](#networking)
+    - [WSL Forwarding](#wsl-forwarding)
+    - [VM Network Adapters](#vm-network-adapters)
+
+
+## VM Operation
+
+### Creation
+
+```powershell
+# Create new Virtual Machine and Virtual Hard Drive
+New-VM `
+-Name kvm01 `
+-Generation 2 `
+-path "C:\ProgramData\Microsoft\Windows\Hyper-V\kvm01" `
+-MemoryStartupBytes 4096MB `
+-NewVHDPath "C:\Users\Public\Documents\Hyper-V\Virtual hard disks\kvm01.vhdx" `
+-NewVHDSizeBytes 50GB
+
+# Enable Virtualization Extensions
+Set-VMProcessor -VMName "kvm01" -ExposeVirtualizationExtensions $true
+
+# Attach ISO to VM
+Set-VMDvDDrive -VMName kvm01 -ControllerNumber 1 -Path "C:\Users\Public\Documents\Iso\rhel-8.5-x86_64-dvd.iso"
+
+# Start VM
+Start-VM -Name kvm01
+```
+
+
+### Properties
+
+```powershell
+Get-VM -Name kvm01 | Select-Object *
+```
+
+### State
+
+```powershell
+# List all Registered VMs
+Get-VM
+
+# Start VM
+Start-VM kvm01
+
+# Stop VM
+Stop-VM kvm01
+```
+
+### Removal
+
+```powershell
+# Retrieve the VHDX path
+$VHDX = Get-VM kvm01 | Select-Object -ExpandProperty HardDrives | Select-Object Path
+
+# Stop VM and Remove VHDX and VM
+Stop-VM kvm01
+Remove-Item -Path $VHDX.Path
+Remove-VM kvm01 -Force
+```
+
+
+
 ## Linux Guest
 
 ### Virtual Hardware Settings
@@ -45,6 +119,13 @@ root         478       2  0 10:00 ?        00:00:00 [hv_sub_chan]
 root         768       2  0 10:00 ?        00:00:00 [hv_balloon]
 ```
 
+### Screen Resolution
+
+With default GRUB arguments the maximum screen resolution will be set to `1024 x 768`. In order to enable HD resolutions you need to edit the `/etc/default/grub` file and add `video=hyperv_fb:1920x1080` argument to the `GRUB_CMDLINE_LINUX_DEFAULT` line.
+
+Afterwards run `sudo update-grub` and `reboot`.
+
+In order to set resolution in Desktop environment, you can use the `xrandr --size 1920x1080` command.
 
 ## Networking
 
@@ -67,17 +148,4 @@ Get-VM -Name kvm01 `
 VMName IPAddresses
 ------ -----------
 kvm01  {172.25.139.59, fe80::215:5dff:fe73:d133}
-```
-
-## VM State
-
-```powershell
-# List all Registered VMs
-Get-VM
-
-# Start VM
-Start-VM kvm01
-
-# Stop VM
-Stop-VM kvm01
 ```
