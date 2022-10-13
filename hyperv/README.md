@@ -125,6 +125,16 @@ With default GRUB arguments the maximum screen resolution will be set to `1024 x
 
 Afterwards run `sudo update-grub` and `reboot`.
 
+An alternative option is to use `grubby`
+
+```bash
+# Check the current Grub entries configuraiton
+grubby --info=ALL
+
+# Add new argument at the end for all entries
+grubby --update-kernel=ALL --args="video=hyperv_fb:1920x1080"
+```
+
 In order to set resolution in Desktop environment, you can use the `xrandr --size 1920x1080` command.
 
 ## Networking
