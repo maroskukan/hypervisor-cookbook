@@ -14,6 +14,8 @@
   - [Networking](#networking)
     - [WSL Forwarding](#wsl-forwarding)
     - [VM Network Adapters](#vm-network-adapters)
+  - [Storage](#storage)
+    - [Converting Disk](#converting-disk)
 
 
 ## VM Operation
@@ -158,4 +160,15 @@ Get-VM -Name kvm01 `
 VMName IPAddresses
 ------ -----------
 kvm01  {172.25.139.59, fe80::215:5dff:fe73:d133}
+```
+
+
+## Storage
+
+### Converting Disk
+
+Convert `vmdk` to `vhdx`.
+
+```powershell
+qemu-img convert .\Metasploitable.vmdk -O vhdx -o subformat=dynamic .\Metasploitable.vhdx
 ```
