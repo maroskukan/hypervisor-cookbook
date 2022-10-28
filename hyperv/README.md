@@ -14,6 +14,7 @@
   - [Networking](#networking)
     - [WSL Forwarding](#wsl-forwarding)
     - [VM Network Adapters](#vm-network-adapters)
+    - [Hyper-V Broken DHCP](#hyper-v-broken-dhcp)
   - [Storage](#storage)
     - [Converting Disk](#converting-disk)
 
@@ -160,6 +161,17 @@ Get-VM -Name kvm01 `
 VMName IPAddresses
 ------ -----------
 kvm01  {172.25.139.59, fe80::215:5dff:fe73:d133}
+```
+
+
+### Hyper-V Broken DHCP
+
+From time to time, it happens that Hyper-V VMs will not receive any IP address via DHCP.
+
+A full host restart usually solves the issues, however I have found out that restarting the following service is also sufficient.
+
+```powershell
+Restart-Service -DisplayName "Internet Connection Sharing (ICS)"
 ```
 
 
