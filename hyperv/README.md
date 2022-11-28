@@ -18,6 +18,7 @@
   - [Storage](#storage)
     - [Converting Disk](#converting-disk)
   - [WSL](#wsl)
+    - [Installation](#installation)
     - [Import custom distribution](#import-custom-distribution)
 
 
@@ -212,6 +213,11 @@ qemu-img convert .\Metasploitable.vmdk -O vhdx -o subformat=dynamic .\Metasploit
 ## WSL
 
 This section describes WSL specific configuration.
+
+### Installation
+
+The latest [WSL package](https://devblogs.microsoft.com/commandline/the-windows-subsystem-for-linux-in-the-microsoft-store-is-now-generally-available-on-windows-10-and-11/) can now be installed via Windows Store. In order to do so on older Windows releases, you need to make sure you have [KB5020030](https://www.catalog.update.microsoft.com/Search.aspx?q=KB5020030) applied first.
+
 
 ### Import custom distribution
 
