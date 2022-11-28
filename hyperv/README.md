@@ -17,6 +17,8 @@
     - [Hyper-V Broken DHCP](#hyper-v-broken-dhcp)
   - [Storage](#storage)
     - [Converting Disk](#converting-disk)
+  - [WSL](#wsl)
+    - [Import custom distribution](#import-custom-distribution)
 
 
 ## VM Operation
@@ -24,30 +26,51 @@
 ### Creation
 
 ```powershell
+# Set VM Name, Switch Name, and Installation Media Path.
+$VMName = 'kvm_efi'
+$Switch = 'Default Switch'
+$InstallMedia = 'C:\iso\rhel-8.5-x86_64-dvd.iso'
+
 # Create new Virtual Machine and Virtual Hard Drive
-New-VM `
--Name kvm01 `
--Generation 2 `
--path "C:\ProgramData\Microsoft\Windows\Hyper-V\kvm01" `
--MemoryStartupBytes 4096MB `
--NewVHDPath "C:\Users\Public\Documents\Hyper-V\Virtual hard disks\kvm01.vhdx" `
--NewVHDSizeBytes 50GB
+New-VM -Name $VMName `
+       -Generation 2 `
+       -MemoryStartupBytes 4GB `
+       -NewVHDPath "C:\Users\Public\Documents\Hyper-V\Virtual hard disks\$VMName\$VMName.vhdx" `
+       -NewVHDSizeBytes 20GB
+       -Path "C:\ProgramData\Microsoft\Windows\Hyper-V\$VMName" `
+       -Switch $Switch
+
+# Disable Dynamic Memory
+Set-VMMemory -VMName $VMName -DynamicMemoryEnabled $false
+
+# Set processor count and dynamic memory
+Set-VMProcessor -VMName $VMName -Count 2
 
 # Enable Virtualization Extensions
 Set-VMProcessor -VMName "kvm01" -ExposeVirtualizationExtensions $true
 
-# Attach ISO to VM
-Set-VMDvDDrive -VMName kvm01 -ControllerNumber 1 -Path "C:\Users\Public\Documents\Iso\rhel-8.5-x86_64-dvd.iso"
+# Disable Secure Boot
+Set-VMFirmware -VMName $VMName -EnableSecureBoot Off
+
+# Add DVD Drive to Virtual Machine
+Add-VMScsiController -VMName $VMName
+Add-VMDvdDrive -VMName $VMName -ControllerNumber 1 -ControllerLocation 0 -Path $InstallMedia
+
+# Mount Installation Media
+$DVDDrive = Get-VMDvdDrive -VMName $VMName
+
+# Configure Virtual Machine to Boot from DVD
+Set-VMFirmware -VMName $VMName -FirstBootDevice $DVDDrive
 
 # Start VM
-Start-VM -Name kvm01
+Start-VM -Name $VMName
 ```
 
 
 ### Properties
 
 ```powershell
-Get-VM -Name kvm01 | Select-Object *
+Get-VM -Name $VMName | Select-Object *
 ```
 
 ### State
@@ -57,22 +80,22 @@ Get-VM -Name kvm01 | Select-Object *
 Get-VM
 
 # Start VM
-Start-VM kvm01
+Start-VM $VMName
 
 # Stop VM
-Stop-VM kvm01
+Stop-VM $VMName
 ```
 
 ### Removal
 
 ```powershell
 # Retrieve the VHDX path
-$VHDX = Get-VM kvm01 | Select-Object -ExpandProperty HardDrives | Select-Object Path
+$VHDX = Get-VM $VMName | Select-Object -ExpandProperty HardDrives | Select-Object Path
 
 # Stop VM and Remove VHDX and VM
-Stop-VM kvm01
+Stop-VM $VMName
 Remove-Item -Path $VHDX.Path
-Remove-VM kvm01 -Force
+Remove-VM $VMName -Force
 ```
 
 
@@ -91,7 +114,7 @@ Recommendations
 Virtualization extensions unlock additional CPU features for Guest VM such as Intel VMX or AMD SVM. These are required if you want to have nested virtualization, meaning running VM inside another VM.
 
 ```powershell
-Set-VMProcessor -VMName "DemoVM" -ExposeVirtualizationExtensions $true
+Set-VMProcessor -VMName $VMName -ExposeVirtualizationExtensions $true
 ```
 
 ### Integration Services
@@ -100,10 +123,10 @@ From Windows Host
 
 ```powershell
 # Get list of running integration Services
-Get-VMIntegrationService -VMName "DemoVM"
+Get-VMIntegrationService -VMName $VMName
 
 # Turn on Guest Service Interface
-Enable-VMIntegrationService -VMName "DemoVM" -Name "Guest Service Interface"
+Enable-VMIntegrationService -VMName $VMName -Name "Guest Service Interface"
 ```
 
 From Linux Guest, the integration services are provided through kernel. The driver name is `hv_utils`.
@@ -131,7 +154,7 @@ Afterwards run `sudo update-grub` and `reboot`.
 An alternative option is to use `grubby`
 
 ```bash
-# Check the current Grub entries configuraiton
+# Check the current Grub entries configuration
 grubby --info=ALL
 
 # Add new argument at the end for all entries
@@ -154,7 +177,7 @@ Get-NetIPInterface | where {$_.InterfaceAlias -eq 'vEthernet (WSL)' -or $_.Inter
 
 ```powershell
 # Retrieve VM IP Address
-Get-VM -Name kvm01 `
+Get-VM -Name $VMName `
 | select -ExpandProperty networkadapters `
 | select vmname, ipaddresses
 
@@ -184,3 +207,63 @@ Convert `vmdk` to `vhdx`.
 ```powershell
 qemu-img convert .\Metasploitable.vmdk -O vhdx -o subformat=dynamic .\Metasploitable.vhdx
 ```
+
+
+## WSL
+
+This section describes WSL specific configuration.
+
+### Import custom distribution
+
+In the following example, we are going to create a custom WSL2 distribution based on Arch Linux. Lets start by creating a new container.
+
+
+```bash
+docker run -it --name arch archlinux
+```
+
+Once the container is running, update packages and perform base system customizations.
+
+```bash
+pacman -Syu --noconfirm
+pacman -Sy  --noconfirm sudo vim
+```
+
+```bash
+echo 'mkukan ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/99_mkukan
+chmod 440 /etc/sudoers.d/99_mkukan
+
+useradd -G wheel,users -m mkukan
+echo "mkukan:archrocks"|chpasswd
+```
+
+```bash
+cat <<EOF > /etc/wsl.conf
+[automount]
+enabled = true
+options = "metadata,umask=22,fmask=11"
+
+[user]
+default=mkukan
+
+[network]
+generateResolvConf = false
+EOF
+```
+
+
+Exit the container, export the image.
+
+```bash
+docker export --output /tmp/arch.tar arch
+```
+
+> **Note**: The exported container image will not contain the Kernel as it is shared between all WSL2 instances. The release information can be retrieved with `wsl --status`. And can be update with `wsl --update`.
+
+From Windows environment, import the distribution.
+
+```powershell
+wsl --import arch C:\wsl\arch \\wsl$\Ubuntu-work\tmp\arch.tar
+```
+
+Once the import has been successful you can run the instance with `wsl -d arch`.
