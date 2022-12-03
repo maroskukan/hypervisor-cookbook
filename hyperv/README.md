@@ -232,7 +232,16 @@ Once the container is running, update packages and perform base system customiza
 
 ```bash
 pacman -Syu --noconfirm
-pacman -Sy  --noconfirm sudo vim
+pacman -Sy  --noconfirm \
+            base-devel \
+            sudo \
+            vim \
+            wget \
+            iproute2 \
+            uzip \
+            jq \
+            exa \
+            bind
 ```
 
 ```bash
@@ -273,3 +282,4 @@ wsl --import arch C:\wsl\arch \\wsl$\Ubuntu-work\tmp\arch.tar
 ```
 
 Once the import has been successful you can run the instance with `wsl -d arch`.
+
