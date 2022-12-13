@@ -164,6 +164,23 @@ grubby --update-kernel=ALL --args="video=hyperv_fb:1920x1080"
 
 In order to set resolution in Desktop environment, you can use the `xrandr --size 1920x1080` command.
 
+To go beyond HD resolution, you need to also update the VM settings while it is powered off. Therefore start by updating the `GRUB_CMDLINE_LINUX_DEFAULT` value by appending `video=2560x1440`. Afterwards update configuration with `sudo update-grub` and shutdown the VM.
+
+Then, check the display the current settings from host.
+
+```powershell
+Get-VMVideo $VMName
+```
+
+To set 2K resolution support:
+
+```powershell
+Set-VMVideo -VMName $VMName `
+            -HorizontalResolution 2560 `
+            -VerticalResolution 1440 `
+            -ResolutionType Single
+```
+
 ## Networking
 
 ### WSL Forwarding
