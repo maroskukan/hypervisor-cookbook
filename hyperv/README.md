@@ -300,3 +300,41 @@ wsl --import arch C:\wsl\arch \\wsl$\Ubuntu-work\tmp\arch.tar
 
 Once the import has been successful you can run the instance with `wsl -d arch`.
 
+
+### Integration
+
+#### Vagrant
+
+In order to allow Vagrant intergration between WSL2 instance and Host running Hyper-V. You first need ensure that installed Vagrant version in Windows is same as in WSL2 instance.
+
+If you are managing packages in Windows using `chocolatey`, it may happen that the available Vagrant version will be behind the one available through `apt`. For this reason, it may be feasible to lock the version in WSL2 instance to prevent automatic upgrades.
+
+```bash
+sudo apt-mark hold vagrant
+```
+
+To show and unhold:
+
+```bash
+sudo apt-mark showhold
+```
+
+```bash
+sudo apt-mark unhold vagrant
+```
+
+Next, to enable the actual integration I recommend to add following code block to your [rc](https://raw.githubusercontent.com/maroskukan/dotfiles/main/.zshrc) file.
+
+```bash
+# Custom configuration for Vagrant
+kernel=$(uname -r) 
+chkvag=$(which vagrant)
+if [[ "$kernel" == *"WSL2"* && -f $chkvag ]]; then
+  # Enable Vagrant integration
+  export VAGRANT_WSL_WINDOWS_ACCESS_USER_HOME_PATH="/mnt/c/Users/maros_kukan"
+  export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS=1
+  export VAGRANT_DEFAULT_PROVIDER=hyperv
+  # Enable forwarding between WSL network and Default Hyper-V Switch
+  powershell.exe -c "Get-NetIPInterface | where {\$_.InterfaceAlias -eq 'vEthernet (WSL)' -or \$_.InterfaceAlias -eq 'vEthernet (Default Switch)'} | Set-NetIPInterface -Forwarding Enabled 2> \$null"
+fi
+```
