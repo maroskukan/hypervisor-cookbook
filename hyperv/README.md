@@ -17,9 +17,15 @@
     - [Hyper-V Broken DHCP](#hyper-v-broken-dhcp)
   - [Storage](#storage)
     - [Converting Disk](#converting-disk)
+  - [Tips](#tips)
+    - [Permissions](#permissions)
   - [WSL](#wsl)
     - [Installation](#installation)
     - [Import custom distribution](#import-custom-distribution)
+    - [Integration](#integration)
+      - [Vagrant](#vagrant)
+    - [Tips](#tips-1)
+      - [Logon failure](#logon-failure)
 
 
 ## VM Operation
@@ -227,6 +233,15 @@ qemu-img convert .\Metasploitable.vmdk -O vhdx -o subformat=dynamic .\Metasploit
 ```
 
 
+## Tips
+
+### Permissions
+
+```powershell
+net localgroup 'Hyper-V Administrators' $(whoami) /add
+```
+
+
 ## WSL
 
 This section describes WSL specific configuration.
@@ -337,4 +352,22 @@ if [[ "$kernel" == *"WSL2"* && -f $chkvag ]]; then
   # Enable forwarding between WSL network and Default Hyper-V Switch
   powershell.exe -c "Get-NetIPInterface | where {\$_.InterfaceAlias -eq 'vEthernet (WSL)' -or \$_.InterfaceAlias -eq 'vEthernet (Default Switch)'} | Set-NetIPInterface -Forwarding Enabled 2> \$null"
 fi
+```
+
+
+### Tips
+
+#### Logon failure
+
+Issue
+
+```powershell
+Logon failure: the user has not been granted the requested logon type at this computer.
+Error code: Wsl/Service/CreateInstance/CreateVm/0x80070569
+```
+
+Resolution
+
+```powershell
+gpupdate /force
 ```
