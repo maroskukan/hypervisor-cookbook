@@ -366,8 +366,15 @@ Logon failure: the user has not been granted the requested logon type at this co
 Error code: Wsl/Service/CreateInstance/CreateVm/0x80070569
 ```
 
-Resolution
+Resolution #1
+
+```powershell
+powershell restart-service vmms
+```
+
+Resolution #2
 
 ```powershell
 gpupdate /force
 ```
+
