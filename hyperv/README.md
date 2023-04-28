@@ -15,6 +15,7 @@
     - [WSL Forwarding](#wsl-forwarding)
     - [VM Network Adapters](#vm-network-adapters)
     - [Hyper-V Broken DHCP](#hyper-v-broken-dhcp)
+    - [Name Resolution](#name-resolution)
   - [Storage](#storage)
     - [Converting Disk](#converting-disk)
   - [Tips](#tips)
@@ -221,6 +222,15 @@ A full host restart usually solves the issues, however I have found out that res
 Restart-Service -DisplayName "Internet Connection Sharing (ICS)"
 ```
 
+
+### Name Resolution
+
+It is common that virtual networks used by Hyper-V change their IP subnet range during host reboots. This makes difficult to maintain a static mapping between IP addresses and hostnames (e.g. in `$Env:WinDir\System32\Drivers\etc\hosts`). However you can leverage the reserved domain `mshome.net` in order to resolve a VM name to its IP address.
+
+```powershell
+curl http://rhel9.mshome.net:8080/
+It Works!
+```
 
 ## Storage
 
