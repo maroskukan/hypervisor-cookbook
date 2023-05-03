@@ -22,6 +22,7 @@
     - [Permissions](#permissions)
   - [WSL](#wsl)
     - [Installation](#installation)
+    - [Systemd](#systemd)
     - [Import custom distribution](#import-custom-distribution)
     - [Integration](#integration)
       - [Vagrant](#vagrant)
@@ -259,6 +260,30 @@ This section describes WSL specific configuration.
 ### Installation
 
 The latest [WSL package](https://devblogs.microsoft.com/commandline/the-windows-subsystem-for-linux-in-the-microsoft-store-is-now-generally-available-on-windows-10-and-11/) can now be installed via Windows Store. In order to do so on older Windows releases, you need to make sure you have [KB5020030](https://www.catalog.update.microsoft.com/Search.aspx?q=KB5020030) applied first.
+
+
+### Systemd
+
+The support for systemd framerwork was [introduced](https://devblogs.microsoft.com/commandline/systemd-support-is-now-available-in-wsl/) in version WSL 0.67.6. Applications such as [docker engine](https://docs.docker.com/engine/install/), [minikube](https://minikube.sigs.k8s.io/docs/start/), [snap](https://ubuntu.com/core/services/guide/snaps-intro), [systemctl](https://www.freedesktop.org/software/systemd/man/systemctl.html) which are dependend on it can natively run inside WSL instance without any workarounds.
+
+In order to enable this support, you need to include following lines in the `/etc/wsl.conf` configuration file inside the WSL instance and then restart it with `wsl.exe --shotdown` from host machine.
+
+An example of `wsl.conf` file:
+
+```ini
+[boot]
+systemd = true
+
+[automount]
+enabled = true
+options = "metadata,umask=22,fmask=11"
+
+[user]
+default=mkukan
+
+[network]
+generateResolvConf = true
+```
 
 
 ### Import custom distribution
