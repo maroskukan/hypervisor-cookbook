@@ -74,6 +74,9 @@ $DVDDrive = Get-VMDvdDrive -VMName $Name
 # Configure Virtual Machine to Boot from DVD
 Set-VMFirmware -VMName $Name -FirstBootDevice $DVDDrive
 
+# Disable Automatic Checkpoints
+Set-VM -Name $Name -AutomaticCheckpointsEnabled $false
+
 # Start the virtual machine
 Start-VM -Name $Name
 
