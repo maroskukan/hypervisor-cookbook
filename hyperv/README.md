@@ -36,18 +36,18 @@
 
 ```powershell
 # Set VM Name, Switch Name, and Installation Media Path.
-$VMName = 'kvm_efi'
-$Switch = 'Default Switch'
-$InstallMedia = 'C:\iso\rhel-8.5-x86_64-dvd.iso'
+$VMName  = 'kvm_efi'
+$Network = 'Default Switch'
+$IsoPath = 'C:\iso\rhel-8.5-x86_64-dvd.iso'
 
 # Create new Virtual Machine and Virtual Hard Drive
 New-VM -Name $VMName `
        -Generation 2 `
        -MemoryStartupBytes 4GB `
        -NewVHDPath "C:\Users\Public\Documents\Hyper-V\Virtual hard disks\$VMName\$VMName.vhdx" `
-       -NewVHDSizeBytes 20GB
+       -NewVHDSizeBytes 20GB `
        -Path "C:\ProgramData\Microsoft\Windows\Hyper-V\$VMName" `
-       -Switch $Switch
+       -Switch $Network
 
 # Disable Dynamic Memory
 Set-VMMemory -VMName $VMName -DynamicMemoryEnabled $false
@@ -63,7 +63,7 @@ Set-VMFirmware -VMName $VMName -EnableSecureBoot Off
 
 # Add DVD Drive to Virtual Machine
 Add-VMScsiController -VMName $VMName
-Add-VMDvdDrive -VMName $VMName -ControllerNumber 1 -ControllerLocation 0 -Path $InstallMedia
+Add-VMDvdDrive -VMName $VMName -ControllerNumber 1 -ControllerLocation 0 -Path $IsoPath
 
 # Mount Installation Media
 $DVDDrive = Get-VMDvdDrive -VMName $VMName
@@ -73,6 +73,9 @@ Set-VMFirmware -VMName $VMName -FirstBootDevice $DVDDrive
 
 # Start VM
 Start-VM -Name $VMName
+
+# Open the virtual machine console
+vmconnect.exe localhost $VMName
 ```
 
 
@@ -117,6 +120,12 @@ Recommendations
 
 - Generation 2
 - Enable Secure Boot with Microsoft EUFI Certificate Authority
+
+```powershell
+# Enable Secure Boot and update the template settings
+Set-VMFirmware -VMName $Name -EnableSecureBoot On
+Set-VMFirmware -VMName $Name -SecureBootTemplate MicrosoftUEFICertificateAuthority
+```
 
 ### Virtualization Extensions
 
