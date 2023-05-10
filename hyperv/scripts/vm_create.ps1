@@ -61,6 +61,9 @@ Set-VMProcessor -VMName $Name -ExposeVirtualizationExtensions $true
 Set-VMFirmware -VMName $Name -EnableSecureBoot On
 Set-VMFirmware -VMName $Name -SecureBootTemplate MicrosoftUEFICertificateAuthority
 
+# Turn on Guest Service Interface
+Enable-VMIntegrationService -VMName $Name -Name "Guest Service Interface"
+
 # Add DVD Drive to Virtual Machine
 Add-VMScsiController -VMName $Name
 Add-VMDvdDrive -VMName $Name -ControllerNumber 1 -ControllerLocation 0 -Path $isoPath
