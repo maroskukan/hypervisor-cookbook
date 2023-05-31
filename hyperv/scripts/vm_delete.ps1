@@ -15,7 +15,7 @@ if (!(Test-Path "$VMPath\Virtual Machines\$Name")) {
 } else {
     Write-Host "Stopping virtual machine '$Name'..."
     # Stop Virtual Machine and delete it
-    Stop-VM $Name -Force
+    Stop-VM $Name -Force -WarningAction SilentlyContinue
     Write-Host "Removing virtual machine '$Name'..."
     Remove-VM $Name -Force
     Remove-Item -Path "$VMPath\Virtual Machines\$Name" -Force -Recurse
