@@ -12,7 +12,11 @@ Param (
     [string]$Size,
 
     [Parameter(HelpMessage="Specify the name of the virtual switch to connect to.")]
-    [string]$Network = "Default Switch"
+    [string]$Network = "Default Switch",
+
+    [Parameter(HelpMessage="Specify the state of the virtual machine (start or create).")]
+    [ValidateSet("start", "create")]
+    [string]$State = "start"
 )
 
 # Retrieve the virtual machine path
@@ -46,7 +50,8 @@ New-VM -Name $Name `
        -NewVHDPath "$VMPath\Virtual Machines\$Name\Virtual Hard Disks\$Name.vhdx" `
        -NewVHDSizeBytes $vHdd `
        -Switch $Network `
-       -Path "$VMPath\Virtual Machines"
+       -Path "$VMPath\Virtual Machines" | `
+       Out-Null
 
 # Disable Dynamic Memory
 Set-VMMemory -VMName $Name -DynamicMemoryEnabled $false
@@ -77,8 +82,20 @@ Set-VMFirmware -VMName $Name -FirstBootDevice $DVDDrive
 # Disable Automatic Checkpoints
 Set-VM -Name $Name -AutomaticCheckpointsEnabled $false
 
-# Start the virtual machine
-Start-VM -Name $Name
+if ($State -eq "create") {
+    # Print the machine serial number
+    $vmInfo = Get-WmiObject -ComputerName localhost `
+                            -Namespace root\virtualization\v2 `
+                            -Class Msvm_VirtualSystemSettingData | `
+                            Where-Object { $_.ElementName -eq $Name -and $_.BIOSSerialNumber } | `
+                            Select-Object ElementName, BIOSSerialNumber | `
+                            ConvertTo-Json
+    Write-Output $vmInfo
 
-# Open the virtual machine console
-vmconnect.exe localhost $Name
+}
+if ($State -eq "start") {
+    # Start the virtual machine
+    Start-VM -Name $Name
+    # Open the virtual machine console
+    vmconnect.exe localhost $Name
+}
