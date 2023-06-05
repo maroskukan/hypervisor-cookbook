@@ -11,6 +11,10 @@ Param (
     [ValidateSet("S","M","L")]
     [string]$Size,
 
+    [Parameter(HelpMessage="Specify the firmware of the virtual machine (BIOS or EUFI).")]
+    [ValidateSet("BIOS", "UEFI")]
+    [string]$Firmware = "UEFI",
+
     [Parameter(HelpMessage="Specify the name of the virtual switch to connect to.")]
     [string]$Network = "Default Switch",
 
@@ -44,14 +48,43 @@ $vmSettings = @{
 $vCpu, $vMem, $vHdd = $vmSettings[$Size]
 
 # Create the virtual machine
-New-VM -Name $Name `
-       -Generation 2 `
-       -MemoryStartupBytes $vMem `
-       -NewVHDPath "$VMPath\Virtual Machines\$Name\Virtual Hard Disks\$Name.vhdx" `
-       -NewVHDSizeBytes $vHdd `
-       -Switch $Network `
-       -Path "$VMPath\Virtual Machines" | `
-       Out-Null
+if ($Firmware -eq "BIOS") {
+    New-VM -Name $Name `
+           -Generation 1 `
+           -MemoryStartupBytes $vMem `
+           -NewVHDPath "$VMPath\Virtual Machines\$Name\Virtual Hard Disks\$Name.vhdx" `
+           -NewVHDSizeBytes $vHdd `
+           -Switch $Network `
+           -Path "$VMPath\Virtual Machines" | `
+           Out-Null
+    
+    # Add DVD Drive to Virtual Machine
+    Set-VMDvdDrive -VMName $Name -ControllerNumber 1 -ControllerLocation 0 -Path $isoPath
+
+} elseif ($Firmware -eq "UEFI") {
+    New-VM -Name $Name `
+           -Generation 2 `
+           -MemoryStartupBytes $vMem `
+           -NewVHDPath "$VMPath\Virtual Machines\$Name\Virtual Hard Disks\$Name.vhdx" `
+           -NewVHDSizeBytes $vHdd `
+           -Switch $Network `
+           -Path "$VMPath\Virtual Machines" | `
+           Out-Null
+    
+    # Enable Secure Boot and update the template settings
+    Set-VMFirmware -VMName $Name -EnableSecureBoot On
+    Set-VMFirmware -VMName $Name -SecureBootTemplate MicrosoftUEFICertificateAuthority
+
+    # Add DVD Drive to Virtual Machine
+    Add-VMScsiController -VMName $Name
+    Add-VMDvdDrive -VMName $Name -ControllerNumber 1 -ControllerLocation 0 -Path $isoPath
+
+    # Mount Installation Media
+    $DVDDrive = Get-VMDvdDrive -VMName $Name
+
+    # Configure Virtual Machine to Boot from DVD
+    Set-VMFirmware -VMName $Name -FirstBootDevice $DVDDrive
+}
 
 # Disable Dynamic Memory
 Set-VMMemory -VMName $Name -DynamicMemoryEnabled $false
@@ -62,22 +95,9 @@ Set-VMProcessor -VMName $Name -Count $vCpu
 # Enable Virtualization Extensions
 Set-VMProcessor -VMName $Name -ExposeVirtualizationExtensions $true
 
-# Enable Secure Boot and update the template settings
-Set-VMFirmware -VMName $Name -EnableSecureBoot On
-Set-VMFirmware -VMName $Name -SecureBootTemplate MicrosoftUEFICertificateAuthority
 
 # Turn on Guest Service Interface
 Enable-VMIntegrationService -VMName $Name -Name "Guest Service Interface"
-
-# Add DVD Drive to Virtual Machine
-Add-VMScsiController -VMName $Name
-Add-VMDvdDrive -VMName $Name -ControllerNumber 1 -ControllerLocation 0 -Path $isoPath
-
-# Mount Installation Media
-$DVDDrive = Get-VMDvdDrive -VMName $Name
-
-# Configure Virtual Machine to Boot from DVD
-Set-VMFirmware -VMName $Name -FirstBootDevice $DVDDrive
 
 # Disable Automatic Checkpoints
 Set-VM -Name $Name -AutomaticCheckpointsEnabled $false
