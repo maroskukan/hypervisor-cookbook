@@ -15,6 +15,10 @@ Param (
     [ValidateSet("BIOS", "UEFI")]
     [string]$Firmware = "UEFI",
 
+    [Parameter(HelpMessage="Specify the TPM support the virtual machine (True or False).")]
+    [ValidateSet("True", "False")]
+    [bool]$TPM = $false,
+
     [Parameter(HelpMessage="Specify the name of the virtual switch to connect to.")]
     [string]$Network = "Default Switch",
 
@@ -84,6 +88,14 @@ if ($Firmware -eq "BIOS") {
 
     # Configure Virtual Machine to Boot from DVD
     Set-VMFirmware -VMName $Name -FirstBootDevice $DVDDrive
+    
+    if ($TPM -eq $true ) {    
+        # Update SecureBootTemplate (Required e.g. for Windows 11)
+        Set-VMFirmware -VMName $Name -SecureBootTemplate MicrosoftWindows
+        # Enable TPM
+        Set-VMKeyProtector -VMName $Name -NewLocalKeyProtector
+        Enable-VMTPM -VMName $Name
+    }
 }
 
 # Disable Dynamic Memory
@@ -114,8 +126,8 @@ if ($State -eq "create") {
 
 }
 if ($State -eq "start") {
-    # Start the virtual machine
-    Start-VM -Name $Name
     # Open the virtual machine console
     vmconnect.exe localhost $Name
+    # Start the virtual machine
+    Start-VM -Name $Name
 }
