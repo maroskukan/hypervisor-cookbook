@@ -25,34 +25,42 @@ KVM acceleration can be used
 
 ### Packages
 
-#### Yum
+#### Dnf
 
 ```bash
-sudo yum install -y qemu-kvm libvirt virt-manager libvirt-client
+dnf install -y qemu-kvm libvirt virt-manager libvirt-client
 
 # The group contains packages such as:
 # gnome-boxes, virt-install, virt-manager, virt-viewer
 # qemu-img, libvirt, libvirt-python, libvirt-client
-sudo yum group install -y "Virtualization Client"
+dnf group install -y "Virtualization Client"
 
-sudo yum group list hidden
+dnf group list hidden
 ```
 
 If you use Cockpit Web UI, you can install `cockpit-machines` to manage Virtual Machines through same interface.
 
 ```bash
-sudo yum install -y cockpit-machines
+dnf install -y cockpit-machines
 ```
 
 #### Apt
 
 ```bash
-sudo apt install qemu-kvm qemu-efi libvirt-daemon-system libvirt-clients bridge-utils virtinst
-sudo apt install virt-manager
+# Mandatory packages
+apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst 
 
-# For vagrant-libvirt plugin
-sudo apt install qemu libvirt-dev ruby-libvirt libxslt-dev libxml2-dev zlib1g-dev ruby-dev  ebtables dnsmasq-base
+# Optional packages for EUFI-based firmware
+apt install -y qemu-efi ovmf
+
+# Optional packages for GUI-based management
+apt install virt-manager
+
+# Optional packages for vagrant-libvirt plugin
+apt install qemu libvirt-dev ruby-libvirt libxslt-dev libxml2-dev zlib1g-dev ruby-dev  ebtables dnsmasq-base
 ```
+
+In order to quickly display a package description, you can use the following command:
 
 ```bash
 apt-cache show libvirt-daemon libvirt-daemon-system | sed -ne '/^Package/p;/^Description-en: /,/^[^ ]/{/^[^ ]/{/^Description-en: /!d};p}'
@@ -61,8 +69,8 @@ apt-cache show libvirt-daemon libvirt-daemon-system | sed -ne '/^Package/p;/^Des
 ### Services
 
 ```bash
-sudo systemctl is-active libvirtd
-sudo systemctl enable --now libvirtd
+# Enable and start libvirtd if not running
+systemctl is-active libvirtd || systemctl enable --now libvirtd
 ```
 
 ### Permissions
@@ -94,8 +102,8 @@ virt-install \
     --description "Arch x64 bios VM" \
     --os-type=Linux \
     --os-variant=archlinux \
-    --ram=2048 \
     --vcpus=2 \
+    --ram=2048 \
     --disk path=/var/lib/libvirt/images/arch_bios.qcow2,bus=virtio,size=20 \
     --graphics vnc,port=5999 \
     --console pty,target_type=serial \
@@ -108,6 +116,7 @@ Example with Ubuntu:
 ```bash
 virt-install \
     --name ubuntu_bios \
+    --description "Ubuntu x64 bios VM" \
     --os-variant ubuntu20.04 \
     --vcpus 2 \
     --ram 2048 \
@@ -118,23 +127,48 @@ virt-install \
 ```
 
 
-Install from ISO with VM that supports EFI:
+Install from ISO with VM that supports OVMF EFI:
 
 ```bash
+# Arch Linux Rolling Release
+vm_name=arch
+loader="/usr/share/OVMF/OVMF_CODE.fd"
+
 virt-install \
-    --name arch_efi \
+    --name=${vm_name} \
     --description "Arch x64 efi VM" \
     --os-type=Linux \
     --os-variant=archlinux \
-    --boot loader=/usr/share/OVMF/OVMF_CODE.fd \
+    --boot loader=${loader} \
     --ram=2048 \
     --vcpus=2 \
-    --disk path=/var/lib/libvirt/images/arch_efi.qcow2,bus=virtio,size=20 \
+    --disk path=/var/lib/libvirt/images/${vm_name}_efi.qcow2,bus=virtio,size=20 \
     --graphics vnc,port=5998 \
     --console pty,target_type=serial \
     --cdrom /home/$USER/Downloads/iso/archlinux-2022.09.03-x86_64.iso \
     --network bridge:virbr0
 ```
+
+```bash
+# Ubuntu 23.04
+vm_name="ubuntu2304"
+loader="/usr/share/OVMF/OVMF_CODE.fd"
+
+virt-install \
+    --name=${vm_name} \
+    --description "Ubuntu 23.04 x64 efi VM" \
+    --os-type=Linux \
+    --os-variant=ubuntu23.04 \
+    --boot loader=${loader} \
+    --ram=2048 \
+    --vcpus=2 \
+    --disk path=/var/lib/libvirt/images/${vm_name}_efi.qcow2,bus=virtio,size=20 \
+    --graphics vnc,port=5998 \
+    --console pty,target_type=serial \
+    --cdrom /home/$USER/Downloads/iso/ubuntu-23.04-live-server-amd64.iso \
+    --network bridge:virbr0
+```
+
 
 > **Info**: The list of supported OS variants can be retrieved by using `osinfo-query os` command, which is available through `libosinfo-bin` package.
 
