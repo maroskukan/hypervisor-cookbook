@@ -100,7 +100,6 @@ Example with Arch Linux:
 virt-install \
     --name=arch_bios \
     --description "Arch x64 bios VM" \
-    --os-type=Linux \
     --os-variant=archlinux \
     --vcpus=2 \
     --ram=2048 \
@@ -126,8 +125,7 @@ virt-install \
     --extra-args='console=ttyS0,115200n8 serial'
 ```
 
-
-Install from ISO with VM that supports OVMF EFI:
+The following code snipped can be used to perform manual installation of Arch Linux running on OVMF EUFI firmware.
 
 ```bash
 # Arch Linux Rolling Release
@@ -137,7 +135,6 @@ loader="/usr/share/OVMF/OVMF_CODE.fd"
 virt-install \
     --name=${vm_name} \
     --description "Arch x64 efi VM" \
-    --os-type=Linux \
     --os-variant=archlinux \
     --boot loader=${loader} \
     --ram=2048 \
@@ -145,27 +142,29 @@ virt-install \
     --disk path=/var/lib/libvirt/images/${vm_name}_efi.qcow2,bus=virtio,size=20 \
     --graphics vnc,port=5998 \
     --console pty,target_type=serial \
-    --cdrom /home/$USER/Downloads/iso/archlinux-2022.09.03-x86_64.iso \
+    --cdrom /var/lib/libvirt/images/iso/iso/archlinux-2022.09.03-x86_64.iso \
     --network bridge:virbr0
 ```
+
+The following code snipped can be used to perform manual installation of Ubuntu 23.04 Linux running on OVMF EUFI firmware.
 
 ```bash
 # Ubuntu 23.04
 vm_name="ubuntu2304"
 loader="/usr/share/OVMF/OVMF_CODE.fd"
 
+#
 virt-install \
     --name=${vm_name} \
     --description "Ubuntu 23.04 x64 efi VM" \
-    --os-type=Linux \
     --os-variant=ubuntu23.04 \
     --boot loader=${loader} \
-    --ram=2048 \
+    --ram=3072 \
     --vcpus=2 \
     --disk path=/var/lib/libvirt/images/${vm_name}_efi.qcow2,bus=virtio,size=20 \
     --graphics vnc,port=5998 \
     --console pty,target_type=serial \
-    --cdrom /home/$USER/Downloads/iso/ubuntu-23.04-live-server-amd64.iso \
+    --cdrom /var/lib/libvirt/images/iso/ubuntu-23.04-live-server-amd64.iso \
     --network bridge:virbr0
 ```
 
@@ -179,7 +178,7 @@ virt-install \
 Retrieve the VNC port. :0 corresponds to 5900
 
 ```bash
-virsh vncdisplay arch_efi
+virsh vncdisplay ${vm_name}
 ```
 
 Rerieve domain MAC and IP address.
