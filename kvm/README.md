@@ -132,6 +132,7 @@ The following code snipped can be used to perform manual installation of Arch Li
 vm_name=arch
 loader="/usr/share/OVMF/OVMF_CODE.fd"
 
+# Domain Creation
 virt-install \
     --name=${vm_name} \
     --description "Arch x64 efi VM" \
@@ -153,7 +154,7 @@ The following code snipped can be used to perform manual installation of Ubuntu 
 vm_name="ubuntu2304"
 loader="/usr/share/OVMF/OVMF_CODE.fd"
 
-#
+# Domain Creation
 virt-install \
     --name=${vm_name} \
     --description "Ubuntu 23.04 x64 efi VM" \
@@ -174,6 +175,11 @@ virt-install \
 
 ### Interaction
 
+Run graphical console
+
+```bash
+virt-viewer --connect qemu:///system --wait ${vm_name}
+```
 
 Retrieve the VNC port. :0 corresponds to 5900
 
@@ -201,14 +207,17 @@ echo $DOMAIN_IP
 virsh list [--all]
 
 # Save the VHD location
-VHD=$(virsh dumpxml --domain <domain-name> | grep 'source file' | cut -f2 -d"'")
+vm_disk_path=$(virsh dumpxml --domain ${vm_name} | grep 'source file' | cut -f2 -d"'")
 
-# Shutdown the Domain
-virsh shutdown <domain-name>
+# Gracefully Shutdown the Domain
+virsh shutdown ${vm_name}
+
+# Forcefully Shutdown the Domain
+virsh destroy ${vm_name}
 
 # Delete the Domain
-virsh undefine <domain-name>
+virsh undefine ${vm_name}
 
 # Remove the VHD
-rm -rf $VHD
+rm -rf ${vm_disk_path}
 ```
