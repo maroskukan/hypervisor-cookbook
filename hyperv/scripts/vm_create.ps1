@@ -36,6 +36,11 @@ if (!(Test-Path $IsoPath)) {
     return
 }
 
+# Check if you have access to the Virtual Machine folder
+if (-not $(Get-ChildItem $VMPath -ErrorAction SilentlyContinue)) {
+    explorer $VMPath
+}
+
 # Check that the destination virtual machine already exists
 if ((Test-Path "$VMPath\Virtual Machines\$Name")) {
     Write-Error "The specified virtual machine '$Name' does already exist."
