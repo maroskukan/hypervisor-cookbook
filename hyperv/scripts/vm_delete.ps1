@@ -11,6 +11,7 @@ $VMPath = (Get-VMHost).VirtualMachinePath
 # Check if you have access to the Virtual Machine folder
 if (-not $(Get-ChildItem $VMPath -ErrorAction SilentlyContinue)) {
     explorer $VMPath
+    Read-host "Once you gain access to $VMPath, press ENTER to continue..."
 }
 
 # Check that the destination virtual machine already exists
