@@ -50,9 +50,10 @@ if ((Test-Path "$VMPath\Virtual Machines\$Name")) {
 
 # Define the virtual machine settings based on the T-shirt size
 $vmSettings = @{
-    "S" = @(2, 4GB, 50GB)
-    "M" = @(4, 8GB, 100GB)
-    "L" = @(8, 16GB, 200GB)
+    "XS" = @(1, 1GB, 20GB)
+    "S"  = @(2, 4GB, 50GB)
+    "M"  = @(4, 8GB, 100GB)
+    "L"  = @(8, 16GB, 200GB)
 }
 
 $vCpu, $vMem, $vHdd = $vmSettings[$Size]
