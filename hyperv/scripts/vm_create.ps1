@@ -8,7 +8,7 @@ Param (
     [string]$IsoPath,
 
     [Parameter(Mandatory=$true, HelpMessage="Specify the size of the virtual machine (S, M, or L).")]
-    [ValidateSet("S","M","L")]
+    [ValidateSet("XS","S","M","L")]
     [string]$Size,
 
     [Parameter(HelpMessage="Specify the firmware of the virtual machine (BIOS or EUFI).")]
