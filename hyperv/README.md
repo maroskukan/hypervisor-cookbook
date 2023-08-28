@@ -422,3 +422,24 @@ Resolution #2
 gpupdate /force
 ```
 
+#### Exec format error
+
+Issue
+
+```bash
+explorer.exe .
+zsh: exec format error: explorer.exe
+```
+
+Resolution
+
+```bash
+sudo apt install -y binfmt-support
+sudo sh -c 'echo :WSLInterop:M::MZ::/init:PF > /usr/lib/binfmt.d/WSLInterop.conf'
+exit
+```
+
+```powershell
+wsl --shutdown
+wsl
+```
