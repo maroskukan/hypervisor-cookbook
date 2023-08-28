@@ -15,6 +15,10 @@ Param (
     [ValidateSet("BIOS", "UEFI")]
     [string]$Firmware = "UEFI",
 
+    [Parameter(HelpMessage="Specify the EUFI firmware SecureBoot (True or False).")]
+    [ValidateSet("True", "False")]
+    [string]$SecureBoot = $true,
+
     [Parameter(HelpMessage="Specify the TPM support the virtual machine (True or False).")]
     [ValidateSet("True", "False")]
     [bool]$TPM = $false,
@@ -82,10 +86,14 @@ if ($Firmware -eq "BIOS") {
            -Path "$VMPath\Virtual Machines" | `
            Out-Null
     
-    # Enable Secure Boot and update the template settings
-    Set-VMFirmware -VMName $Name -EnableSecureBoot On
-    Set-VMFirmware -VMName $Name -SecureBootTemplate MicrosoftUEFICertificateAuthority
-
+    if ($SecureBoot -eq $true ) {  
+        # Enable Secure Boot and update the template settings
+        Set-VMFirmware -VMName $Name -EnableSecureBoot On
+        Set-VMFirmware -VMName $Name -SecureBootTemplate MicrosoftUEFICertificateAuthority
+    } else {
+        # Disable Secure Boot
+        Set-VMFirmware -VMName $Name -EnableSecureBoot Off
+    }
     # Add DVD Drive to Virtual Machine
     Add-VMScsiController -VMName $Name
     Add-VMDvdDrive -VMName $Name -ControllerNumber 1 -ControllerLocation 0 -Path $isoPath
